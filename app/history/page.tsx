@@ -32,7 +32,8 @@ import {
 import { Card } from '../../components/Card';
 import { useAuth } from '../../components/AuthContext';
 import { LoginCard } from '../../components/LoginCard';
-import { db } from '../../lib/firebase';
+import { db, isFirebaseConfigured } from '../../lib/firebase';
+import { loadDemoProfile, loadDemoWeights } from '../../lib/demoStore';
 import styles from './page.module.css';
 
 interface WeightRecord {
@@ -115,6 +116,10 @@ export default function HistoryPage() {
       setWeights([]);
       return;
     }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      setWeights(loadDemoWeights(user.uid));
+      return;
+    }
     const weightRef = collection(db, 'users', user.uid, 'weights');
     const weightQuery = query(weightRef, orderBy('date', 'desc'), limit(180));
     const unsubscribe = onSnapshot(weightQuery, (snapshot) => {
@@ -130,6 +135,11 @@ export default function HistoryPage() {
   useEffect(() => {
     if (!user) {
       setProfile(null);
+      return;
+    }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      const profile = loadDemoProfile(user.uid);
+      setProfile(profile ? { goalWeight: profile.goalWeight } : { goalWeight: null });
       return;
     }
     const profileRef = doc(db, 'users', user.uid);

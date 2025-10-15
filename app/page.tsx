@@ -15,7 +15,14 @@ import { useAuth } from '../components/AuthContext';
 import { LoginCard } from '../components/LoginCard';
 import { Card } from '../components/Card';
 import { WeightForm, WeightFormValues } from '../components/WeightForm';
-import { db } from '../lib/firebase';
+import { db, isFirebaseConfigured } from '../lib/firebase';
+import {
+  addDemoWeight,
+  ensureDemoProfile,
+  loadDemoProfile,
+  loadDemoWeights,
+  type DemoProfile
+} from '../lib/demoStore';
 import { calculateStreak } from '../lib/streak';
 import styles from './page.module.css';
 
@@ -26,12 +33,7 @@ interface WeightRecord {
   note?: string;
 }
 
-interface Profile {
-  goalWeight: number | null;
-  hintMode: 'light' | 'maintain' | 'active';
-  dayBoundaryHour: number;
-  height?: number | null;
-}
+type Profile = DemoProfile;
 
 const hintPresets: Record<Profile['hintMode'], string[]> = {
   light: [
@@ -66,6 +68,10 @@ export default function HomePage() {
       setWeights([]);
       return;
     }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      setWeights(loadDemoWeights(user.uid));
+      return;
+    }
     const weightRef = collection(db, 'users', user.uid, 'weights');
     const weightQuery = query(weightRef, orderBy('date', 'desc'), limit(365));
     const unsubscribe = onSnapshot(weightQuery, (snapshot) => {
@@ -81,6 +87,14 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) {
       setProfile(null);
+      return;
+    }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      ensureDemoProfile(user.uid);
+      const stored = loadDemoProfile(user.uid);
+      if (stored) {
+        setProfile(stored);
+      }
       return;
     }
     const profileRef = doc(db, 'users', user.uid);
@@ -134,13 +148,22 @@ export default function HomePage() {
     if (!user) return;
     setSaving(true);
     try {
-      const weightRef = collection(db, 'users', user.uid, 'weights');
-      await addDoc(weightRef, {
-        date: values.date,
-        weight: values.weight,
-        note: values.note,
-        createdAt: new Date().toISOString()
-      });
+      if (!isFirebaseConfigured || !db || user.isDemo) {
+        const nextWeights = addDemoWeight(user.uid, {
+          date: values.date,
+          weight: values.weight,
+          note: values.note
+        });
+        setWeights(nextWeights);
+      } else {
+        const weightRef = collection(db, 'users', user.uid, 'weights');
+        await addDoc(weightRef, {
+          date: values.date,
+          weight: values.weight,
+          note: values.note,
+          createdAt: new Date().toISOString()
+        });
+      }
     } finally {
       setSaving(false);
     }
