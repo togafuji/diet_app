@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { Route } from 'next';
 import { ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import styles from './AppShell.module.css';
 
-const links = [
+const links: { href: Route; label: string }[] = [
   { href: '/', label: 'ホーム' },
   { href: '/history', label: '履歴' },
   { href: '/settings', label: '設定' }
