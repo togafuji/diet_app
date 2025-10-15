@@ -31,7 +31,9 @@ export function LoginCard() {
       <h1>Diet Streak へようこそ</h1>
       <p>メールアドレスとパスワードでログインして、毎日の記録を始めましょう。</p>
       <form onSubmit={handleSubmit} className={styles.form}>
-        <label htmlFor="email">メールアドレス</label>
+        <label htmlFor="email" className={styles.label}>
+          メールアドレス
+        </label>
         <input
           id="email"
           name="email"
@@ -40,8 +42,11 @@ export function LoginCard() {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          className={styles.input}
         />
-        <label htmlFor="password">パスワード</label>
+        <label htmlFor="password" className={styles.label}>
+          パスワード
+        </label>
         <input
           id="password"
           name="password"
@@ -51,6 +56,7 @@ export function LoginCard() {
           minLength={6}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          className={styles.input}
         />
         {error ? <p role="alert" className={styles.error}>{error}</p> : null}
         <button type="submit" className={styles.submitButton}>

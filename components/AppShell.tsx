@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         ) : null}
       </header>
-      <main>{children}</main>
+      <main className={styles.main}>{children}</main>
     </div>
   );
 }

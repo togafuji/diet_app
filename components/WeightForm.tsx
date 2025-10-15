@@ -52,7 +52,9 @@ export function WeightForm({
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.fieldGroup}>
-        <label htmlFor="weight">体重 (kg)</label>
+        <label htmlFor="weight" className={styles.label}>
+          体重 (kg)
+        </label>
         <input
           id="weight"
           name="weight"
@@ -63,11 +65,14 @@ export function WeightForm({
           required
           value={weight}
           onChange={(event) => setWeight(event.target.value)}
+          className={styles.input}
         />
       </div>
       <div className={styles.fieldGroup}>
         <div className={styles.toggleRow}>
-          <label htmlFor="autoDate">日付は自動入力</label>
+          <label htmlFor="autoDate" className={styles.label}>
+            日付は自動入力
+          </label>
           <input
             id="autoDate"
             type="checkbox"
@@ -78,13 +83,16 @@ export function WeightForm({
         </div>
         {!autoDate ? (
           <div>
-            <label htmlFor="date">記録日</label>
+            <label htmlFor="date" className={styles.label}>
+              記録日
+            </label>
             <input
               id="date"
               type="date"
               value={date}
               max={today}
               onChange={(event) => setDate(event.target.value)}
+              className={styles.input}
             />
           </div>
         ) : null}
@@ -93,13 +101,16 @@ export function WeightForm({
         </p>
       </div>
       <div className={styles.fieldGroup}>
-        <label htmlFor="note">メモ (任意)</label>
+        <label htmlFor="note" className={styles.label}>
+          メモ (任意)
+        </label>
         <textarea
           id="note"
           name="note"
           rows={3}
           value={note}
           onChange={(event) => setNote(event.target.value)}
+          className={styles.textarea}
         />
       </div>
       {error ? <p role="alert" className={styles.error}>{error}</p> : null}
