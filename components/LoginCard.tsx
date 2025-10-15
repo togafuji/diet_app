@@ -29,7 +29,9 @@ export function LoginCard() {
   return (
     <section className={styles.container}>
       <h1>Diet Streak へようこそ</h1>
-      <p>メールアドレスとパスワードでログインして、毎日の記録を始めましょう。</p>
+      <p>
+        メールアドレスとパスワードは任意の組み合わせで利用できます。お好きな情報でログインして、毎日の記録を始めましょう。
+      </p>
       <form onSubmit={handleSubmit} className={styles.form}>
         <label htmlFor="email" className={styles.label}>
           メールアドレス

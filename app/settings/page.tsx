@@ -14,7 +14,15 @@ import {
 import { Card } from '../../components/Card';
 import { LoginCard } from '../../components/LoginCard';
 import { useAuth } from '../../components/AuthContext';
-import { db } from '../../lib/firebase';
+import { db, isFirebaseConfigured } from '../../lib/firebase';
+import {
+  loadDemoProfile,
+  saveDemoProfile,
+  loadDemoWeights,
+  loadAllDemoWeightsAscending,
+  ensureDemoProfile,
+  type DemoProfile
+} from '../../lib/demoStore';
 import styles from './page.module.css';
 
 interface ProfileForm {
@@ -62,6 +70,19 @@ export default function SettingsPage() {
     if (!user) {
       return;
     }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      ensureDemoProfile(user.uid);
+      const profile = loadDemoProfile(user.uid);
+      if (profile) {
+        setForm({
+          goalWeight: profile.goalWeight != null ? String(profile.goalWeight) : '',
+          hintMode: profile.hintMode ?? 'maintain',
+          dayBoundaryHour: profile.dayBoundaryHour != null ? String(profile.dayBoundaryHour) : '0',
+          height: profile.height != null ? String(profile.height) : ''
+        });
+      }
+      return;
+    }
     const profileRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(profileRef, (snapshot) => {
       const data = snapshot.data();
@@ -82,6 +103,10 @@ export default function SettingsPage() {
       setWeights([]);
       return;
     }
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      setWeights(loadDemoWeights(user.uid));
+      return;
+    }
     const weightRef = collection(db, 'users', user.uid, 'weights');
     const weightQuery = query(weightRef, orderBy('date', 'desc'), limit(365));
     const unsubscribe = onSnapshot(weightQuery, (snapshot) => {
@@ -99,17 +124,27 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
     try {
-      const profileRef = doc(db, 'users', user.uid);
-      await setDoc(
-        profileRef,
-        {
+      if (!isFirebaseConfigured || !db || user.isDemo) {
+        const profile: DemoProfile = {
           goalWeight: form.goalWeight ? Number(form.goalWeight) : null,
           hintMode: form.hintMode,
           dayBoundaryHour: Number(form.dayBoundaryHour),
           height: form.height ? Number(form.height) : null
-        },
-        { merge: true }
-      );
+        };
+        saveDemoProfile(user.uid, profile);
+      } else {
+        const profileRef = doc(db, 'users', user.uid);
+        await setDoc(
+          profileRef,
+          {
+            goalWeight: form.goalWeight ? Number(form.goalWeight) : null,
+            hintMode: form.hintMode,
+            dayBoundaryHour: Number(form.dayBoundaryHour),
+            height: form.height ? Number(form.height) : null
+          },
+          { merge: true }
+        );
+      }
       setSavedMessage('保存しました');
       setTimeout(() => setSavedMessage(''), 3000);
     } finally {
@@ -119,13 +154,18 @@ export default function SettingsPage() {
 
   const handleExport = async () => {
     if (!user) return;
-    const weightRef = collection(db, 'users', user.uid, 'weights');
-    const fullQuery = query(weightRef, orderBy('date', 'asc'));
-    const snapshot = await getDocs(fullQuery);
-    const rows: WeightRecord[] = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<WeightRecord, 'id'>)
-    }));
+    let rows: WeightRecord[];
+    if (!isFirebaseConfigured || !db || user.isDemo) {
+      rows = loadAllDemoWeightsAscending(user.uid);
+    } else {
+      const weightRef = collection(db, 'users', user.uid, 'weights');
+      const fullQuery = query(weightRef, orderBy('date', 'asc'));
+      const snapshot = await getDocs(fullQuery);
+      rows = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<WeightRecord, 'id'>)
+      }));
+    }
     const csv = toCSV(rows);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
