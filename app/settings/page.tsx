@@ -151,7 +151,9 @@ export default function SettingsPage() {
       <Card title="プロフィールと目標設定">
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.row}>
-            <label htmlFor="goalWeight">目標体重 (kg)</label>
+            <label htmlFor="goalWeight" className={styles.label}>
+              目標体重 (kg)
+            </label>
             <input
               id="goalWeight"
               name="goalWeight"
@@ -160,10 +162,13 @@ export default function SettingsPage() {
               step="0.1"
               value={form.goalWeight}
               onChange={(event) => setForm((prev) => ({ ...prev, goalWeight: event.target.value }))}
+              className={styles.control}
             />
           </div>
           <div className={styles.row}>
-            <label htmlFor="height">身長 (cm / 任意)</label>
+            <label htmlFor="height" className={styles.label}>
+              身長 (cm / 任意)
+            </label>
             <input
               id="height"
               name="height"
@@ -172,16 +177,20 @@ export default function SettingsPage() {
               step="0.1"
               value={form.height}
               onChange={(event) => setForm((prev) => ({ ...prev, height: event.target.value }))}
+              className={styles.control}
             />
           </div>
           <div className={styles.row}>
-            <label htmlFor="hintMode">食事ヒントのモード</label>
+            <label htmlFor="hintMode" className={styles.label}>
+              食事ヒントのモード
+            </label>
             <select
               id="hintMode"
               value={form.hintMode}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, hintMode: event.target.value as ProfileForm['hintMode'] }))
               }
+              className={styles.control}
             >
               {Object.entries(hintModeLabels).map(([key, label]) => (
                 <option key={key} value={key}>
@@ -191,11 +200,14 @@ export default function SettingsPage() {
             </select>
           </div>
           <div className={styles.row}>
-            <label htmlFor="dayBoundary">1日の区切り時刻</label>
+            <label htmlFor="dayBoundary" className={styles.label}>
+              1日の区切り時刻
+            </label>
             <select
               id="dayBoundary"
               value={form.dayBoundaryHour}
               onChange={(event) => setForm((prev) => ({ ...prev, dayBoundaryHour: event.target.value }))}
+              className={styles.control}
             >
               {Array.from({ length: 24 }).map((_, index) => (
                 <option key={index} value={index}>
